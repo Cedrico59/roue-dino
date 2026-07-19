@@ -1,0 +1,449 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>La roue des dinosaures</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #050805;
+      color: #f8e5b3;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", Arial, sans-serif;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: start center;
+      padding: 0;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(237, 176, 58, 0.18), transparent 26%),
+        #050805;
+    }
+
+    .poster {
+      position: relative;
+      width: min(100vw, 1024px);
+      aspect-ratio: 1024 / 1536;
+      background: url("./affiche-sans-roue-v3.png") center top / contain no-repeat;
+      overflow: hidden;
+      box-shadow: 0 0 48px rgba(0, 0, 0, 0.85);
+    }
+
+    .spin-hotspot {
+      position: absolute;
+      left: 49.8%;
+      top: 58.4%;
+      width: 21%;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      background: rgba(255, 205, 77, 0.02);
+      color: transparent;
+      outline: 0;
+      z-index: 8;
+    }
+
+    .spin-hotspot::after {
+      content: "";
+      position: absolute;
+      inset: -5%;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 217, 98, 0);
+      box-shadow: 0 0 0 rgba(255, 214, 77, 0);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .spin-hotspot:hover::after,
+    .spin-hotspot:focus-visible::after {
+      border-color: rgba(255, 217, 98, 0.9);
+      box-shadow: 0 0 26px rgba(255, 214, 77, 0.7);
+    }
+
+    .spin-hotspot:disabled {
+      cursor: wait;
+    }
+
+    .spin-effect {
+      position: absolute;
+      left: 49.8%;
+      top: 58.4%;
+      width: 72%;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 4px solid rgba(255, 214, 75, 0);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .animated-wheel {
+      position: absolute;
+      left: 49.8%;
+      top: 57.92%;
+      width: 72.05%;
+      height: auto;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .animated-wheel-disc {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-image: url("./roue-interieur-anime-v2.png");
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      background-position: center;
+      box-shadow: 0 0 0 1px rgba(255, 217, 99, 0.1);
+      will-change: transform;
+      transition: transform 4.6s cubic-bezier(.08,.74,.08,1);
+      overflow: hidden;
+      transform: rotate(0deg);
+      transform-origin: 50% 50%;
+    }
+
+    .fixed-pointer {
+      position: absolute;
+      left: 50.25%;
+      top: 33.05%;
+      width: 5.8%;
+      height: 5.1%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, transparent 0 18%, rgba(255, 246, 168, 0.95) 19% 22%, transparent 23%),
+        radial-gradient(circle at 50% 28%, #fff6b3 0 12%, #ffd64f 13% 38%, #b77914 58%, #5c3005 100%);
+      clip-path: polygon(50% 100%, 3% 16%, 50% 0, 97% 16%);
+      filter:
+        drop-shadow(0 0 10px rgba(255, 216, 72, 0.95))
+        drop-shadow(0 8px 6px rgba(0, 0, 0, 0.9));
+    }
+
+    .fixed-pointer::after {
+      content: "";
+      position: absolute;
+      inset: 18% 31% 28%;
+      background: linear-gradient(180deg, #fff7b8, #d48d18);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      opacity: 0.95;
+    }
+
+    .poster.spinning .animated-wheel-disc {
+      filter: brightness(1.08) saturate(1.08);
+    }
+
+    .static-rim {
+      position: absolute;
+      left: 49.8%;
+      top: 57.92%;
+      width: 84%;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: url("./roue-cadre-fixe-v3.png") center / 100% 100% no-repeat;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .poster.spinning .spin-effect {
+      opacity: 1;
+      border-top-color: rgba(255, 227, 128, 0.95);
+      border-right-color: rgba(69, 214, 255, 0.78);
+      animation: spinRing 0.55s linear infinite;
+      box-shadow: 0 0 34px rgba(255, 214, 75, 0.48);
+    }
+
+    @keyframes spinRing {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    .result {
+      position: absolute;
+      left: 50%;
+      bottom: 1.15%;
+      width: 68%;
+      min-height: 8.8%;
+      transform: translateX(-50%) translateY(110%);
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 13px 16px;
+      border: 2px solid rgba(224, 164, 52, 0.95);
+      background:
+        linear-gradient(180deg, rgba(20, 13, 5, 0.96), rgba(0, 0, 0, 0.91));
+      box-shadow:
+        inset 0 0 22px rgba(224, 164, 52, 0.22),
+        0 14px 30px rgba(0, 0, 0, 0.75);
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .result.show {
+      opacity: 1;
+      transform: translateX(-50%);
+    }
+
+    .result img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 7px #000);
+    }
+
+    .result-name {
+      color: #ffd778;
+      font-size: clamp(27px, 4vw, 46px);
+      line-height: 0.9;
+      text-transform: uppercase;
+      text-shadow: 0 5px 5px #000;
+    }
+
+    .result-meta {
+      margin-top: 4px;
+      color: #fff0c8;
+      font-family: Arial, sans-serif;
+      font-size: clamp(12px, 1.6vw, 16px);
+      font-weight: 900;
+    }
+
+    .command {
+      margin-top: 6px;
+      color: #efb64e;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: clamp(10px, 1.3vw, 13px);
+      word-break: break-word;
+    }
+
+    .copy {
+      margin-top: 8px;
+      border: 0;
+      cursor: pointer;
+      padding: 8px 12px;
+      background: linear-gradient(180deg, #ffe69b, #c58216);
+      color: #1b1105;
+      font-family: Arial, sans-serif;
+      font-weight: 950;
+    }
+
+    .toast {
+      position: absolute;
+      left: 49.8%;
+      top: 58.4%;
+      transform: translate(-50%, -50%) scale(0.92);
+      padding: 10px 18px;
+      color: #ffe08a;
+      border: 1px solid rgba(255, 216, 96, 0.8);
+      background: rgba(0, 0, 0, 0.72);
+      text-shadow: 0 4px 5px #000;
+      font-size: clamp(18px, 3vw, 34px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .poster.spinning .toast {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    @media (max-width: 640px) {
+      .poster {
+        width: 100vw;
+      }
+
+      .result {
+        width: 92%;
+        grid-template-columns: 58px 1fr;
+        padding: 10px;
+      }
+
+      .result img {
+        width: 54px;
+        height: 54px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <section class="poster" id="poster" aria-label="La roue des dinosaures ARK">
+      <div class="spin-effect" aria-hidden="true"></div>
+      <div class="animated-wheel" aria-hidden="true">
+        <div class="animated-wheel-disc" id="animatedWheel"></div>
+      </div>
+      <div class="static-rim" aria-hidden="true"></div>
+      <div class="fixed-pointer" aria-hidden="true"></div>
+      <button class="spin-hotspot" id="spinButton" type="button" aria-label="Faire tourner la roue">Tourner</button>
+      <div class="toast">LA ROUE TOURNE...</div>
+
+      <aside class="result" id="result" aria-live="polite">
+        <img id="resultImage" alt="">
+        <div>
+          <div class="result-name" id="resultName">Pret</div>
+          <div class="result-meta" id="resultMeta">Clique au centre de la roue.</div>
+          <div class="command" id="command">Commande admin ici.</div>
+          <button class="copy" id="copyButton" type="button">COPIER LA COMMANDE</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const lots = [
+      { rang: 1, nom: "Giganotosaurus", niveau: 200, poids: 1, classe: "Gigant_Character_BP_C", image: "Giganotosaurus.png" },
+      { rang: 2, nom: "Tyrannosaurus Rex", niveau: 200, poids: 2, classe: "Rex_Character_BP_C", image: "Rex.png" },
+      { rang: 3, nom: "Carcharodontosaurus", niveau: 200, poids: 3, classe: "Carcha_Character_BP_C", image: "Carcharodontosaurus.png" },
+      { rang: 4, nom: "Spinosaurus", niveau: 200, poids: 4, classe: "Spino_Character_BP_C", image: "Spinosaurus.png" },
+      { rang: 5, nom: "Allosaurus", niveau: 200, poids: 5, classe: "Allo_Character_BP_C", image: "Allosaurus.png" },
+      { rang: 6, nom: "Carnotaurus", niveau: 200, poids: 6, classe: "Carno_Character_BP_C", image: "Carnotaurus.png" },
+      { rang: 7, nom: "Baryonyx", niveau: 200, poids: 7, classe: "Baryonyx_Character_BP_C", image: "Baryonyx.png" },
+      { rang: 8, nom: "Dilophosaurus", niveau: 200, poids: 8, classe: "Dilo_Character_BP_C", image: "Dilophosaur.png" },
+      { rang: 9, nom: "Raptor", niveau: 200, poids: 9, classe: "Raptor_Character_BP_C", image: "Raptor.png" },
+      { rang: 10, nom: "Yutyrannus", niveau: 200, poids: 10, classe: "Yuty_Character_BP_C", image: "Yutyrannus.png" },
+      { rang: 11, nom: "Direwolf", niveau: 200, poids: 11, classe: "Direwolf_Character_BP_C", image: "Direwolf.png" },
+      { rang: 12, nom: "Sabertooth", niveau: 200, poids: 12, classe: "Saber_Character_BP_C", image: "Sabertooth.png" },
+      { rang: 13, nom: "Thylacoleo", niveau: 200, poids: 13, classe: "Thylacoleo_Character_BP_C", image: "Thylacoleo.png" },
+      { rang: 14, nom: "Megalosaurus", niveau: 200, poids: 14, classe: "Megalosaurus_Character_BP_C", image: "Megalosaurus.png" },
+      { rang: 15, nom: "Troodon", niveau: 200, poids: 15, classe: "Troodon_Character_BP_C", image: "Troodon.png" },
+      { rang: 16, nom: "Kaprosuchus", niveau: 200, poids: 16, classe: "Kaprosuchus_Character_BP_C", image: "Kaprosuchus.png" },
+      { rang: 17, nom: "Megalodon", niveau: 200, poids: 17, classe: "Megalodon_Character_BP_C", image: "Megalodon.png" },
+      { rang: 18, nom: "Helicoprion", niveau: 200, poids: 18, classe: "Helicoprion_Character_BP_C", image: "Helicoprion.png" },
+      { rang: 19, nom: "Tusoteuthis", niveau: 200, poids: 19, classe: "Tusoteuthis_Character_BP_C", image: "Tusoteuthis.png" },
+      { rang: 20, nom: "Mosasaurus", niveau: 200, poids: 20, classe: "Mosa_Character_BP_C", image: "Mosasaurus.png" },
+      { rang: 21, nom: "Brontosaurus", niveau: 200, poids: 21, classe: "Sauropod_Character_BP_C", image: "Brontosaurus.png" },
+      { rang: 22, nom: "Triceratops", niveau: 200, poids: 22, classe: "Trike_Character_BP_C", image: "Triceratops.png" },
+      { rang: 23, nom: "Stegosaurus", niveau: 200, poids: 23, classe: "Stego_Character_BP_C", image: "Stegosaurus.png" },
+      { rang: 24, nom: "Ankylosaurus", niveau: 200, poids: 24, classe: "Ankylo_Character_BP_C", image: "Ankylosaurus.png" },
+      { rang: 25, nom: "Doedicurus", niveau: 200, poids: 25, classe: "Doed_Character_BP_C", image: "Doedicurus.png" },
+      { rang: 26, nom: "Mammoth", niveau: 200, poids: 26, classe: "Mammoth_Character_BP_C", image: "Mammoth.png" },
+      { rang: 27, nom: "Paraceratherium", niveau: 200, poids: 27, classe: "Paracer_Character_BP_C", image: "Paraceratherium.png" },
+      { rang: 28, nom: "Diplodocus", niveau: 200, poids: 28, classe: "Diplodocus_Character_BP_C", image: "Diplodocus.png" },
+      { rang: 29, nom: "Iguanodon", niveau: 200, poids: 29, classe: "Iguanodon_Character_BP_C", image: "Iguanodon.png" },
+      { rang: 30, nom: "Parasaur", niveau: 200, poids: 30, classe: "Para_Character_BP_C", image: "Parasaur.png" }
+    ];
+
+    const poster = document.getElementById("poster");
+    const animatedWheel = document.getElementById("animatedWheel");
+    const spinButton = document.getElementById("spinButton");
+    const result = document.getElementById("result");
+    const resultImage = document.getElementById("resultImage");
+    const resultName = document.getElementById("resultName");
+    const resultMeta = document.getElementById("resultMeta");
+    const command = document.getElementById("command");
+    const copyButton = document.getElementById("copyButton");
+    let currentCommand = "";
+    let currentWheelRotation = 0;
+    const visualSegmentAngles = [
+      355.85, 9.95, 24.15, 37.75, 51.1, 63.6, 75.05, 84.6, 92.75, 101.75,
+      112.25, 124.2, 136.7, 149.2, 161.45, 173.8, 186.35, 198.85, 211.15, 223.6,
+      236.25, 248.9, 261.8, 274.15, 285.75, 297.95, 309.85, 320.7, 331.6, 343.05
+    ];
+    const pointerAngleOffset = 0;
+
+    function syncWheelCrop() {
+      const posterWidth = poster.clientWidth;
+      const posterHeight = poster.clientHeight;
+      const wheelCenterY = posterHeight * 0.5534;
+
+      poster.style.setProperty("--poster-w", `${posterWidth}px`);
+      poster.style.setProperty("--poster-h", `${posterHeight}px`);
+    }
+
+    function imageUrl(fileName) {
+      return `https://ark.wiki.gg/wiki/Special:Redirect/file/${encodeURIComponent(fileName)}`;
+    }
+
+    function fallbackImage(name) {
+      const initials = name.slice(0, 3).toUpperCase();
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="#100d07"/><circle cx="80" cy="70" r="48" fill="#1d160d" stroke="#dca23b" stroke-width="7"/><text x="80" y="89" text-anchor="middle" font-family="Arial" font-size="34" font-weight="900" fill="#ffe08a">${initials}</text></svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+
+    function prestige(rang) {
+      if (rang <= 10) return "Commun";
+      if (rang <= 18) return "Rare";
+      if (rang <= 24) return "Epique";
+      if (rang <= 28) return "Legendaire";
+      return "Mythique";
+    }
+
+    function pickLot() {
+      const total = lots.reduce((sum, lot) => sum + lot.poids, 0);
+      let draw = Math.floor(Math.random() * total) + 1;
+
+      for (const lot of lots) {
+        draw -= lot.poids;
+        if (draw <= 0) return lot;
+      }
+      return lots[0];
+    }
+
+    function spin() {
+      result.classList.remove("show");
+      poster.classList.add("spinning");
+      spinButton.disabled = true;
+
+      const lot = pickLot();
+      const extraTurns = 5 + Math.floor(Math.random() * 3);
+      const visualAngle = visualSegmentAngles[lot.rang - 1];
+      const targetRotation = -visualAngle + pointerAngleOffset;
+      const currentMod = ((currentWheelRotation % 360) + 360) % 360;
+      const targetMod = ((targetRotation % 360) + 360) % 360;
+      const deltaToTarget = (targetMod - currentMod + 360) % 360;
+      currentWheelRotation += extraTurns * 360 + deltaToTarget;
+      animatedWheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+      window.setTimeout(() => {
+        currentCommand = `admincheat GMSummon "${lot.classe}" ${lot.niveau}`;
+        resultImage.onerror = () => {
+          resultImage.src = fallbackImage(lot.nom);
+        };
+        resultImage.src = imageUrl(lot.image);
+        resultImage.alt = lot.nom;
+        resultName.textContent = lot.nom;
+        resultMeta.textContent = `Lot #${lot.rang}/30 - ${prestige(lot.rang)} - Niveau ${lot.niveau}`;
+        command.textContent = currentCommand;
+        poster.classList.remove("spinning");
+        result.classList.add("show");
+        spinButton.disabled = false;
+      }, 2500);
+    }
+
+    async function copyCommand() {
+      if (!currentCommand) return;
+
+      try {
+        await navigator.clipboard.writeText(currentCommand);
+        copyButton.textContent = "COMMANDE COPIEE";
+      } catch {
+        copyButton.textContent = "COPIE MANUELLE";
+      }
+      window.setTimeout(() => {
+        copyButton.textContent = "COPIER LA COMMANDE";
+      }, 1400);
+    }
+
+    resultImage.src = fallbackImage("ARK");
+    syncWheelCrop();
+    window.addEventListener("resize", syncWheelCrop);
+    spinButton.addEventListener("click", spin);
+    copyButton.addEventListener("click", copyCommand);
+  </script>
+</body>
+</html>
